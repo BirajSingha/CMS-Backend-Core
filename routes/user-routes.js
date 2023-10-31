@@ -10,7 +10,6 @@ import {
   getProfileDetails,
   forgotPassword,
   changePassword,
-  getCertificate,
 } from "../controllers/user-controller";
 import multer from "multer";
 import fs from "fs";
@@ -104,7 +103,6 @@ userRouter.put(
 );
 userRouter.post("/logout", upload.none(), logoutUser);
 userRouter.get("/getUserProfile", getProfileDetails);
-userRouter.get("/getCertificate", getCertificate);
 userRouter.post("/forgotPassword", upload.none(), forgotPassword);
 userRouter.post("/changePassword", upload.none(), changePassword);
 userRouter.get("/:id", getUserById);

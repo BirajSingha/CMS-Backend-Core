@@ -3,9 +3,6 @@ import Certificate from "../models/Certificates";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
-import fs from "fs";
-import PDFParser from "pdf2json";
-import path from "path";
 
 const SECRET_KEY =
   "f64a9b48c83e9e6c573d33d7d1f84813aef35f0ac15622f7a3e9912c6d609";
@@ -125,7 +122,7 @@ export const signup = async (req, res, next) => {
   for (const cert of certificate) {
     const certificateEntry = new Certificate({
       user: user._id,
-      certificate: cert,
+      certificate: process.env.IMAGE_URL + "certificates/" + cert,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -146,7 +143,7 @@ export const signup = async (req, res, next) => {
     name: user.name,
     email: user.email,
     phone: user.phone,
-    profileImage: user.profileImage,
+    profileImage: process.env.IMAGE_URL + "profiles/" + user.profileImage,
     certificates: certificateObjs,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -198,7 +195,8 @@ export const signin = async (req, res, next) => {
     name: existingUser.name,
     email: existingUser.email,
     phone: existingUser.phone,
-    profileImage: existingUser.profileImage,
+    profileImage:
+      process.env.IMAGE_URL + "profiles/" + existingUser.profileImage,
     certificates: existingUser.certificates,
   };
 
@@ -265,7 +263,7 @@ export const updateProfile = async (req, res, next) => {
     if (certificate && certificateIdToUpdate) {
       const updatedCertificateData = {
         userID: updatedUser._id,
-        certificate: certificate[0],
+        certificate: process.env.IMAGE_URL + "certificates/" + certificate[0],
         updatedAt: new Date(),
       };
 
@@ -275,17 +273,6 @@ export const updateProfile = async (req, res, next) => {
           updatedCertificateData,
           { new: true }
         );
-
-        // const updatedCertificates = await Certificate.updateMany(
-        //   { _id: { $in: certificateIdToUpdate } },
-        //   {
-        //     $set: {
-        //       updatedCertificateData,
-        //       updatedAt: new Date(),
-        //     },
-        //   },
-        //   { multi: true }
-        // );
 
         if (!updatedCertificate) {
           console.log(
@@ -304,7 +291,8 @@ export const updateProfile = async (req, res, next) => {
       name: updatedUser.name,
       email: updatedUser.email,
       phone: updatedUser.phone,
-      profileImage: updatedUser.profileImage,
+      profileImage:
+        process.env.IMAGE_URL + "profiles/" + updatedUser.profileImage,
       certificates: updatedUser.certificates,
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt,
@@ -328,22 +316,29 @@ export const getUserById = async (req, res, next) => {
   let user;
 
   try {
-    user = await Users.findById(userID);
+    user = await Users.findById(userID).populate("certificates");
   } catch (error) {
     return console.log(error);
   }
+
+  if (!user) {
+    return res.status(404).json({ message: "No user found!" });
+  }
+
+  const allCertificates = user.certificates.map((cert) => ({
+    _id: cert._id,
+    certificate: process.env.IMAGE_URL + "certificates/" + cert.certificate,
+  }));
 
   const userDetails = {
     _id: user._id,
     name: user.name,
     email: user.email,
     phone: user.phone,
-    profileImage: user.profileImage,
+    profileImage: process.env.IMAGE_URL + "profiles/" + user.profileImage,
+    certificates: allCertificates,
   };
 
-  if (!user) {
-    return res.status(404).json({ message: "No user found!" });
-  }
   return res.status(200).json({
     userDetails: userDetails,
     message: "Profile fetched successfully!",
@@ -440,8 +435,21 @@ export const getProfileDetails = async (req, res, next) => {
         return res.status(404).json({ message: "User not found", status: 404 });
       }
 
+      const userDetails = {
+        _id: details._id,
+        name: details.name,
+        email: details.email,
+        phone: details.phone,
+        profileImage:
+          process.env.IMAGE_URL + "profiles/" + details.profileImage,
+        certificates: details.certificates,
+        createdAt: details.createdAt,
+        updatedAt: details.updatedAt,
+        token: details.token,
+      };
+
       return res.status(200).json({
-        userDetails: details,
+        userDetails: userDetails,
         message: "User details fetched successfully!",
         status: 200,
       });
@@ -586,127 +594,6 @@ export const changePassword = async (req, res, next) => {
       } catch (error) {
         return res.status(500).json({ message: "Server error", status: 500 });
       }
-    } catch (error) {
-      return res.status(500).json({ message: "Server error", status: 500 });
-    }
-  }
-};
-
-export const getCertificate = async (req, res, next) => {
-  const tokenCookie = req.cookies.token;
-  const userDetailsCookie = req.cookies.userDetails;
-
-  if (!tokenCookie) {
-    return res
-      .status(401)
-      .json({ message: "No API key provided", status: 401 });
-  }
-
-  let userIndentify;
-  let details;
-
-  try {
-    userIndentify = jwt.verify(tokenCookie, SECRET_KEY);
-  } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      await Users.findOneAndUpdate(
-        { token: tokenCookie },
-        { $set: { token: null } }
-      );
-
-      res.clearCookie("token");
-      res.clearCookie("userDetails");
-
-      return res
-        .status(401)
-        .json({ message: "Token has expired", status: 401 });
-    } else {
-      return res.status(401).json({ message: error.message, status: 401 });
-    }
-  }
-
-  if (!userIndentify) {
-    throw new Error("Invalid or expired API key");
-  } else {
-    const userDetails = JSON.parse(userDetailsCookie);
-    const certificatePath = `public/uploads/certificates/${userDetails.certificate}`;
-
-    // const fileName = path.basename(
-    //   certificatePath,
-    //   path.extname(certificatePath)
-    // );
-
-    if (!fs.existsSync(certificatePath)) {
-      return res.status(404).json({
-        message: "The PDF file does not exist at the specified path",
-        status: 404,
-      });
-    }
-
-    try {
-      details = await Users.findById(userIndentify.userId);
-
-      if (!details) {
-        return res.status(404).json({ message: "User not found", status: 404 });
-      }
-
-      //---------- SEND AS TEXT FILE ----------//
-      // const pdfParser = new PDFParser(this, 1);
-
-      // pdfParser.on("pdfParser_dataError", (errData) =>
-      //   console.error(errData.parserError)
-      // );
-      // pdfParser.on("pdfParser_dataReady", () => {
-      //   fs.writeFile(
-      //     `public/uploads/certificates/${fileName}.content.txt`,
-      //     pdfParser.getRawTextContent(),
-      //     (writeErr) => {
-      //       if (writeErr) {
-      //         console.error(writeErr);
-      //         return res
-      //           .status(500)
-      //           .json({ message: "Server error", status: 500 });
-      //       }
-
-      //       const filePath = `public/uploads/certificates/${fileName}.content.txt`;
-      //       fs.readFile(filePath, "utf-8", (readErr, data) => {
-      //         if (readErr) {
-      //           console.error(readErr);
-      //           return res
-      //             .status(500)
-      //             .json({ message: "Server error", status: 500 });
-      //         }
-      //         res.status(200).json({
-      //           certificate: data,
-      //           message: "Certificate fetched successfully!",
-      //           status: 200,
-      //         });
-      //       });
-      //     }
-      //   );
-      // });
-
-      // pdfParser.loadPDF(certificatePath);
-
-      //---------- SEND AS PDF FILE ----------//
-
-      res.setHeader("Content-Type", "application/pdf");
-      const isInline = req.query.inline === "true";
-
-      if (isInline) {
-        res.setHeader(
-          "Content-Disposition",
-          `inline; filename=${userDetails.certificate}`
-        );
-      } else {
-        res.setHeader(
-          "Content-Disposition",
-          `attachment; filename=${userDetails.certificate}`
-        );
-      }
-
-      const fileStream = fs.createReadStream(certificatePath);
-      fileStream.pipe(res);
     } catch (error) {
       return res.status(500).json({ message: "Server error", status: 500 });
     }

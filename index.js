@@ -3,12 +3,13 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import { userRouter } from "./routes/user-routes";
 import { postRouter } from "./routes/post-routes";
+import "dotenv/config";
 
 const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static("public"));
+app.use(express.static(process.env.IMAGE_PATH));
 app.use("/api/user", userRouter);
 app.use("/api/post", postRouter);
 

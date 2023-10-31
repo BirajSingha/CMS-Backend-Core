@@ -13,7 +13,7 @@ export const getAllPosts = async (req, res, next) => {
   let posts;
 
   try {
-    posts = await Posts.find();
+    posts = await Posts.find().populate("postedBy");
   } catch (error) {
     return console.log(error);
   }
@@ -21,9 +21,26 @@ export const getAllPosts = async (req, res, next) => {
   if (!posts) {
     return res.status(404).json({ message: "No posts found!", status: 404 });
   }
-  return res
-    .status(200)
-    .json({ posts, message: "All posts fetched successfully!", status: 200 });
+
+  const postDetails = posts.map((post) => ({
+    _id: post._id,
+    postTitle: post.postTitle,
+    postBody: post.postBody,
+    postImage: process.env.IMAGE_URL + "posts/" + post.postImage,
+    postedBy: {
+      _id: post.postedBy._id,
+      name: post.postedBy.name,
+      profileImage:
+        process.env.IMAGE_URL + "profiles/" + post.postedBy.profileImage,
+    },
+    createdAt: post.createdAt,
+  }));
+
+  return res.status(200).json({
+    posts: postDetails,
+    message: "All posts fetched successfully!",
+    status: 200,
+  });
 };
 
 export const uploadPost = async (req, res, next) => {
@@ -88,7 +105,7 @@ export const uploadPost = async (req, res, next) => {
     postedBy: post.postedBy,
     postTitle: post.postTitle,
     postBody: post.postBody,
-    postImage: post.postImage,
+    postImage: process.env.IMAGE_URL + "posts/" + post.postImage,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
   };
@@ -161,7 +178,7 @@ export const updatePost = async (req, res, next) => {
       _id: updatedPost._id,
       postTitle: updatedPost.postTitle,
       postBody: updatedPost.postBody,
-      postImage: updatedPost.postImage,
+      postImage: process.env.IMAGE_URL + "posts/" + updatedPost.postImage,
       postedBy: updatedPost.postedBy,
       createdAt: updatedPost.createdAt,
       updatedAt: updatedPost.updatedAt,
@@ -203,14 +220,15 @@ export const getPostById = async (req, res, next) => {
   const postedByDetails = {
     _id: post.postedBy._id,
     name: post.postedBy.name,
-    profileImage: post.postedBy.profileImage,
+    profileImage:
+      process.env.IMAGE_URL + "profiles/" + post.postedBy.profileImage,
   };
 
   const postDetails = {
     _id: post._id,
     postTitle: post.postTitle,
     postBody: post.postBody,
-    postImage: post.postImage,
+    postImage: process.env.IMAGE_URL + "posts/" + post.postImage,
     postedBy: postedByDetails,
   };
 
@@ -239,8 +257,16 @@ export const getPostsByUser = async (req, res, next) => {
       return res.status(404).json({ message: "No posts found!", status: 404 });
     }
 
+    const postDetails = posts.map((post) => ({
+      _id: post._id,
+      postTitle: post.postTitle,
+      postBody: post.postBody,
+      postImage: process.env.IMAGE_URL + "posts/" + post.postImage,
+      postedBy: post.postedBy,
+    }));
+
     return res.status(200).json({
-      posts,
+      posts: postDetails,
       message: "Posts fetched successfully!",
       status: 200,
     });
