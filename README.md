@@ -31,7 +31,7 @@ The package.json file lists project dependencies and scripts for development, te
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/BirajSingha/CMS-backend-core.git
+    https://github.com/BirajSingha/CMS-Backend-Core.git
     ```
 
 2. Navigate to the project directory:
@@ -75,6 +75,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 If you find this project helpful, please consider leaving a star! ⭐ Your support is greatly appreciated.
 
-[![Star on GitHub](https://img.shields.io/github/stars/birajsingha/cms-backend-core?style=social)](https://github.com/BirajSingha/cms-backend-core)
+[![Star on GitHub](https://img.shields.io/github/stars/birajsingha/cms-backend-core?style=social)](https://github.com/BirajSingha/CMS-Backend-Core.git)
 
 ---
