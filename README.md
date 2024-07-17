@@ -75,6 +75,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 If you find this project helpful, please consider leaving a star! ⭐ Your support is greatly appreciated.
 
-[![Star on GitHub](https://img.shields.io/github/stars/birajsingha/cms-backend-core?style=social)](https://github.com/BirajSingha/CMS-Backend-Core.git)
+[![Star on GitHub](https://img.shields.io/github/stars/BirajSingha/CMS-Backend-Core?style=social)](https://github.com/BirajSingha/CMS-Backend-Core.git)
 
 ---
