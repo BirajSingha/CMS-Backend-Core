@@ -15,7 +15,7 @@ app.use("/api/post", postRouter);
 
 mongoose
   .connect(
-    "mongodb+srv://BirajSingha:GmNSbvizTSnpNfCd@cluster0.8c3ydzj.mongodb.net/?retryWrites=true&w=majority"
+    "mongodb+srv://[your-username]:[your-password]@cluster0.8c3ydzj.mongodb.net/?retryWrites=true&w=majority"
   )
   .then(() => app.listen(5000))
   .then(() => console.log("CONNECTED TO ATLAS!"))
