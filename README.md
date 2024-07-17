@@ -5,7 +5,7 @@ Welcome to CMS Backend Core! This repository contains the backend system for a C
 ## Features:
 
 - **API Endpoints:** Includes RESTful API endpoints for managing content, users, permissions, etc.
-- **Database Integration:** Integration with a database system (e.g., MySQL, MongoDB) for data storage and retrieval.
+- **Database Integration:** Integration with a database system (e.g., MongoDB) for data storage and retrieval.
 - **Authentication and Authorization:** Implements authentication (e.g., JWT) and authorization mechanisms to secure endpoints and manage user permissions.
 - **Scalability and Performance:** Designed for scalability and optimized for performance to handle large volumes of data and user requests.
 - **Documentation:** Comprehensive documentation for API endpoints and usage guidelines.
